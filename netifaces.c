@@ -1716,7 +1716,7 @@ gateways (PyObject *self)
     char            data[0];
   } *pmsg, *msgbuf;
   int s;
-  int seq = 0;
+  uint32_t seq = 0;
   ssize_t ret;
   struct sockaddr_nl sanl;
   static const struct sockaddr_nl sanl_kernel = { .nl_family = AF_NETLINK };
@@ -1800,15 +1800,14 @@ gateways (PyObject *self)
     do {
       struct sockaddr_nl sanl_from;
       struct iovec iov = { msgbuf, bufsize };
-      struct msghdr msghdr = {
-        &sanl_from,
-        sizeof(sanl_from),
-        &iov,
-        1,
-        NULL,
-        0,
-        0
-      };
+      struct msghdr msghdr;
+      msghdr.msg_name = sanl_from;
+      msghdr.msg_namelen = sizeof(sanl_from);
+      msghdr.msg_iov = &iov;
+      msghdr.msg_iovlen = 1;
+      msghdr.msg_control = NULL;
+      msghdr.msg_controllen = 0;
+      msghdr.msg_flags = 0;
       int nllen;
 
       ret = recvmsg (s, &msghdr, 0);
